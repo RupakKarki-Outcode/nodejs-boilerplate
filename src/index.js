@@ -8,6 +8,7 @@ import json from "./middlewares/json";
 import routes from "./routes";
 import logger, { logStream } from "./utils/logger";
 
+import basicAuth from "express-basic-auth";
 import swaggerUi from "swagger-ui-express";
 const swaggerFile = require("../swagger-output.json");
 
@@ -42,8 +43,18 @@ app.use(json);
 // API Routes
 app.use("/api", routes);
 
-//
-app.use("/doc", swaggerUi.serve, swaggerUi.setup(swaggerFile));
+// setting up swagger, basic auth is to secure the swagger route
+app.use(
+  process.env.SWAGGER_URL,
+  basicAuth({
+    challenge: true,
+    users: {
+      [process.env.SWAGGER_USER]: process.env.SWAGGER_PASSWORD,
+    },
+  }),
+  swaggerUi.serve,
+  swaggerUi.setup(swaggerFile)
+);
 
 // Error Middleware
 app.use(errorHandler.genericErrorHandler);
