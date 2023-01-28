@@ -1,0 +1,23 @@
+{
+  "env": {
+    "es6": true,
+    "node": true
+  },
+  "parserOptions": {
+    "ecmaVersion": 2018,
+    "sourceType": "module"
+  },
+  "extends": ["eslint:recommended"],
+  "plugins": ["unused-imports"],
+  "rules": {
+    "camelcase": [
+      "error",
+      {
+        "properties": "never"
+      }
+    ],
+    "no-console": "warn",
+    "no-undef": "error",
+    "no-unused-vars": ["warn", {"ignoreRestSiblings": true, "argsIgnorePattern": "^_" }]
+  }
+}

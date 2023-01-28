@@ -1,0 +1,59 @@
+# This workflow will do a clean installation of node dependencies, cache/restore them, build the source code and run tests across different versions of node
+# For more information see: https://help.github.com/actions/language-and-framework-guides/using-nodejs-with-github-actions
+
+name: Deploy Node js
+
+on:
+  push:
+    branches: [master]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: [16.x]
+        # See supported Node.js release schedule at https://nodejs.org/en/about/releases/
+
+    steps:
+      - name: Check file existence
+        id: check_files
+        uses: andstor/file-existence-action@v1
+        with:
+          files: "uploads"
+      - name: File exists
+        if: steps.check_files.outputs.files_exists == 'true'
+        run: cp -r uploads/ /var/www/html/
+      - uses: actions/checkout@v3
+      - name: Make envfile # secrets are to be stored in github secrets
+        run: |
+          touch .env
+          echo APP_NAME=${{secrets.APP_NAME }} >> .env
+          echo APP_VERSION=${{ secrets.APP_VERSION }} >> .env
+          echo APP_PORT=${{ secrets.APP_PORT }} >> .env
+          echo APP_HOST=${{ secrets.APP_HOST }} >> .env
+          echo LOG_LEVEL=${{ secrets.LOG_LEVEL }} >> .env
+          echo DB_PORT=${{ secrets.DB_PORT }} >> .env
+          echo DB_HOST=${{ secrets.DB_HOST }} >> .env
+          echo DB_NAME=${{ secrets.DB_NAME }} >> .env
+          echo DB_USER=${{ secrets.DB_USER }} >> .env
+          echo DB_PASSWORD=${{ secrets.DB_PASSWORD }} >> .env
+          echo APP_PER_PAGE=${{ secrets.APP_PER_PAGE }} >> .env
+          echo JWT_EXPIRATION=${{ secrets.JWT_EXPIRATION }} >> .env
+          echo JWT_ENCRYPTION=${{ secrets.JWT_ENCRYPTION }} >> .env
+          echo SMTP_HOST=${{ secrets.SMTP_HOST }} >> .env
+          echo SMTP_PORT=${{ secrets.SMTP_PORT }} >> .env
+          echo SMTP_SECURE=${{ secrets.SMTP_SECURE }} >> .env
+          echo SMTP_AUTH_USER=${{ secrets.SMTP_AUTH_USER }} >> .env
+          echo SMTP_AUTH_PASS=${{ secrets.SMTP_AUTH_PASS }} >> .env
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v2
+        with:
+          node-version: ${{ matrix.node-version }}
+      - name: remove node modules to fresh install again
+        run: rm -rf node_modules
+      - name: fresh install node modules
+        run: yarn install --frozen-lockfile
+      - name: restart docker-compose
+        run: docker-compose stop && docker-compose up -d
