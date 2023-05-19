@@ -15,4 +15,4 @@ node_modules
 # Vim swp files
 *.swp
 
-
+.DS_Store
